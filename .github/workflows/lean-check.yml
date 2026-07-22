@@ -22,14 +22,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Lean
-        uses: leanprover-community/setup-lean@v1
-
-      - name: Resolve pinned dependencies
-        run: lake update
-
-      - name: Download Mathlib build cache
-        run: lake exe cache get
-
       - name: Kernel-check counterexample
-        run: lake build Counterexample109
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: true
+          build-args: Counterexample109
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: true
