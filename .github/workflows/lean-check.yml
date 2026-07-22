@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   lean-check:
-    runs-on: windows-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 45
 
     steps:
