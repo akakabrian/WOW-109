@@ -177,7 +177,9 @@ lemma bipartite_card_le_ten (s : Finset (Fin 15))
       norm_num at hle
   have ht : 5 ≤ t.card := forbiddenOddCycles_hittingNumber t hhit
   have htcard : t.card = 15 - s.card := by
-    simpa [t] using Finset.card_sdiff (Finset.subset_univ s)
+    dsimp [t]
+    rw [Finset.card_sdiff]
+    simp
   omega
 
 lemma largestInducedBipartiteSubgraphSize_le_ten :
@@ -186,7 +188,9 @@ lemma largestInducedBipartiteSubgraphSize_le_ten :
   apply csSup_le
   · refine ⟨0, ?_⟩
     refine ⟨∅, ?_, rfl⟩
-    simp
+    refine ⟨⟨fun v => False.elim (by simpa using v.property), ?_⟩⟩
+    intro v w _
+    exact False.elim (by simpa using v.property)
   · rintro n ⟨s, hs, rfl⟩
     exact bipartite_card_le_ten s hs
 
