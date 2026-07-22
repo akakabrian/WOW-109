@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   lean-check:
-    runs-on: macos-latest
+    runs-on: windows-latest
     timeout-minutes: 45
 
     steps:
