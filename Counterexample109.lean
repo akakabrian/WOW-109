@@ -3,9 +3,9 @@ import FormalConjecturesUtil
 /-!
 # Counterexample to Written on the Wall II, Conjecture 109
 
-This file is independent of the conjecture theorem itself.  It defines a connected graph on
+This file is independent of the conjecture theorem itself. It defines a connected graph on
 `Fin 15`, proves that its independence number is eight and its Havel--Hakimi residue is three,
-and proves that every induced bipartite subgraph has at most ten vertices.  Consequently the
+and proves that every induced bipartite subgraph has at most ten vertices. Consequently the
 formal inequality in `GraphConjecture109.lean` specializes to `8 ≤ 7`.
 
 The graph6 encoding of the witness is `NbA?IWS`yIIGFN[rI??`.
@@ -13,31 +13,44 @@ The graph6 encoding of the witness is `NbA?IWS`yIIGFN[rI??`.
 
 namespace WrittenOnTheWallII.GraphConjecture109.Counterexample
 
-open Classical SimpleGraph
+open SimpleGraph
 
-/-- A 15-vertex, 37-edge counterexample.  Each edge is listed once; `fromRel` symmetrizes it. -/
+/-- The 37 edges, in one orientation, as an executable Boolean predicate. -/
+def edgeForward (u v : Fin 15) : Bool :=
+  (u.val == 0 && v.val == 1) || (u.val == 0 && v.val == 5) ||
+  (u.val == 0 && v.val == 9) ||
+  (u.val == 1 && v.val == 3) || (u.val == 1 && v.val == 7) ||
+  (u.val == 1 && v.val == 10) || (u.val == 1 && v.val == 11) ||
+  (u.val == 1 && v.val == 13) || (u.val == 1 && v.val == 14) ||
+  (u.val == 2 && v.val == 3) || (u.val == 2 && v.val == 13) ||
+  (u.val == 3 && v.val == 8) || (u.val == 3 && v.val == 11) ||
+  (u.val == 3 && v.val == 12) || (u.val == 3 && v.val == 13) ||
+  (u.val == 3 && v.val == 14) ||
+  (u.val == 4 && v.val == 7) || (u.val == 4 && v.val == 12) ||
+  (u.val == 5 && v.val == 6) || (u.val == 5 && v.val == 7) ||
+  (u.val == 5 && v.val == 8) || (u.val == 5 && v.val == 9) ||
+  (u.val == 5 && v.val == 10) || (u.val == 5 && v.val == 12) ||
+  (u.val == 6 && v.val == 9) || (u.val == 6 && v.val == 13) ||
+  (u.val == 7 && v.val == 9) || (u.val == 7 && v.val == 10) ||
+  (u.val == 7 && v.val == 11) || (u.val == 7 && v.val == 13) ||
+  (u.val == 8 && v.val == 9) || (u.val == 8 && v.val == 12) ||
+  (u.val == 9 && v.val == 12) ||
+  (u.val == 10 && v.val == 12) || (u.val == 10 && v.val == 13) ||
+  (u.val == 11 && v.val == 12) || (u.val == 11 && v.val == 13)
+
+/-- The symmetric executable adjacency predicate. -/
+def edgeBool (u v : Fin 15) : Bool := edgeForward u v || edgeForward v u
+
+/-- A 15-vertex, 37-edge counterexample. -/
 def witness : SimpleGraph (Fin 15) :=
-  SimpleGraph.fromRel (fun u v =>
-    (u = 0 ∧ v = 1) ∨ (u = 0 ∧ v = 5) ∨ (u = 0 ∧ v = 9) ∨
-    (u = 1 ∧ v = 3) ∨ (u = 1 ∧ v = 7) ∨ (u = 1 ∧ v = 10) ∨
-    (u = 1 ∧ v = 11) ∨ (u = 1 ∧ v = 13) ∨ (u = 1 ∧ v = 14) ∨
-    (u = 2 ∧ v = 3) ∨ (u = 2 ∧ v = 13) ∨
-    (u = 3 ∧ v = 8) ∨ (u = 3 ∧ v = 11) ∨ (u = 3 ∧ v = 12) ∨
-    (u = 3 ∧ v = 13) ∨ (u = 3 ∧ v = 14) ∨
-    (u = 4 ∧ v = 7) ∨ (u = 4 ∧ v = 12) ∨
-    (u = 5 ∧ v = 6) ∨ (u = 5 ∧ v = 7) ∨ (u = 5 ∧ v = 8) ∨
-    (u = 5 ∧ v = 9) ∨ (u = 5 ∧ v = 10) ∨ (u = 5 ∧ v = 12) ∨
-    (u = 6 ∧ v = 9) ∨ (u = 6 ∧ v = 13) ∨
-    (u = 7 ∧ v = 9) ∨ (u = 7 ∧ v = 10) ∨ (u = 7 ∧ v = 11) ∨
-    (u = 7 ∧ v = 13) ∨
-    (u = 8 ∧ v = 9) ∨ (u = 8 ∧ v = 12) ∨
-    (u = 9 ∧ v = 12) ∨
-    (u = 10 ∧ v = 12) ∨ (u = 10 ∧ v = 13) ∨
-    (u = 11 ∧ v = 12) ∨ (u = 11 ∧ v = 13))
+  SimpleGraph.mk' ⟨edgeBool, by
+    constructor <;> native_decide⟩
 
-instance witnessDecidableAdj : DecidableRel witness.Adj := by
-  unfold witness
+instance witnessDecidableAdj : DecidableRel witness.Adj := fun u v => by
+  change Decidable (edgeBool u v = true)
   infer_instance
+
+open Classical
 
 /-- The unique maximum independent set of the witness. -/
 def maxIndependent : Finset (Fin 15) := {0, 2, 4, 6, 8, 10, 11, 14}
@@ -64,12 +77,12 @@ lemma witness_residue : residue witness = 3 := by
   unfold residue
   decide +native
 
-/-!
+/-
 ## A finite odd-cycle-transversal certificate
 
-The 23 triangles below have a unique four-vertex transversal `{1,5,12,13}`.  The remaining
-five-cycle `3-8-9-7-11-3` avoids that transversal.  Hence every set meeting all listed odd cycles
-has at least five vertices.  This is a compact certificate that deleting only four vertices can
+The 23 triangles below have a unique four-vertex transversal `{1,5,12,13}`. The remaining
+five-cycle `3-8-9-7-11-3` avoids that transversal. Hence every set meeting all listed odd cycles
+has at least five vertices. This is a compact certificate that deleting only four vertices can
 never make the witness bipartite.
 -/
 
@@ -89,14 +102,14 @@ def fiveCycle : Finset (Fin 15) := {3, 8, 9, 7, 11}
 
 def forbiddenOddCycles : Finset (Finset (Fin 15)) := insert fiveCycle triangles
 
-/-- A purely finite check: every transversal of the listed odd cycles has size at least five. -/
+/- A purely finite check: every transversal of the listed odd cycles has size at least five. -/
 set_option maxHeartbeats 0 in
 lemma forbiddenOddCycles_hittingNumber :
     ∀ t : Finset (Fin 15),
       (∀ c ∈ forbiddenOddCycles, (c ∩ t).Nonempty) → 5 ≤ t.card := by
   native_decide
 
-/-- Every listed forbidden set is either the designated five-cycle or a triangle of `witness`. -/
+/- Every listed forbidden set is either the designated five-cycle or a triangle of `witness`. -/
 set_option maxHeartbeats 0 in
 lemma forbiddenOddCycles_shape :
     ∀ c ∈ forbiddenOddCycles,
@@ -153,7 +166,7 @@ lemma bipartite_card_le_ten (s : Finset (Fin 15))
       exact fiveCycle_not_bipartite s hcsub hs
     · let e : Fin 3 ≃ ↥c := (Finset.equivFinOfCardEq hcard).symm
       let f : Fin 3 → ↥s := fun i => ⟨(e i).1, hcsub (e i).2⟩
-      have hf : Function.Pairwise fun i j : Fin 3 => (witness.induce s).Adj (f i) (f j) := by
+      have hf : Pairwise fun i j : Fin 3 => (witness.induce s).Adj (f i) (f j) := by
         intro i j hij
         change witness.Adj (e i).1 (e j).1
         apply hadj (e i).1 (e i).2 (e j).1 (e j).2
@@ -164,7 +177,7 @@ lemma bipartite_card_le_ten (s : Finset (Fin 15))
       norm_num at hle
   have ht : 5 ≤ t.card := forbiddenOddCycles_hittingNumber t hhit
   have htcard : t.card = 15 - s.card := by
-    simp [t]
+    simpa [t] using Finset.card_sdiff (Finset.subset_univ s)
   omega
 
 lemma largestInducedBipartiteSubgraphSize_le_ten :
@@ -173,7 +186,7 @@ lemma largestInducedBipartiteSubgraphSize_le_ten :
   apply csSup_le
   · refine ⟨0, ?_⟩
     refine ⟨∅, ?_, rfl⟩
-    exact Colorable.of_isEmpty 2
+    simp
   · rintro n ⟨s, hs, rfl⟩
     exact bipartite_card_le_ten s hs
 
