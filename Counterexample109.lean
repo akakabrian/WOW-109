@@ -3,9 +3,9 @@ import FormalConjecturesUtil
 /-!
 # Counterexample to Written on the Wall II, Conjecture 109
 
-This file is independent of the conjecture theorem itself. It defines a connected graph on
+This file is independent of the conjecture theorem itself.  It defines a connected graph on
 `Fin 15`, proves that its independence number is eight and its Havel--Hakimi residue is three,
-and proves that every induced bipartite subgraph has at most ten vertices. Consequently the
+and proves that every induced bipartite subgraph has at most ten vertices.  Consequently the
 formal inequality in `GraphConjecture109.lean` specializes to `8 ≤ 7`.
 
 The graph6 encoding of the witness is `NbA?IWS`yIIGFN[rI??`.
@@ -15,7 +15,7 @@ namespace WrittenOnTheWallII.GraphConjecture109.Counterexample
 
 open Classical SimpleGraph
 
-/-- A 15-vertex, 37-edge counterexample. Each edge is listed once; `fromRel` symmetrizes it. -/
+/-- A 15-vertex, 37-edge counterexample.  Each edge is listed once; `fromRel` symmetrizes it. -/
 def witness : SimpleGraph (Fin 15) :=
   SimpleGraph.fromRel (fun u v =>
     (u = 0 ∧ v = 1) ∨ (u = 0 ∧ v = 5) ∨ (u = 0 ∧ v = 9) ∨
@@ -67,9 +67,9 @@ lemma witness_residue : residue witness = 3 := by
 /-!
 ## A finite odd-cycle-transversal certificate
 
-The 23 triangles below have a unique four-vertex transversal `{1,5,12,13}`. The remaining
-five-cycle `3-8-9-7-11-3` avoids that transversal. Hence every set meeting all listed odd cycles
-has at least five vertices. This is a compact certificate that deleting only four vertices can
+The 23 triangles below have a unique four-vertex transversal `{1,5,12,13}`.  The remaining
+five-cycle `3-8-9-7-11-3` avoids that transversal.  Hence every set meeting all listed odd cycles
+has at least five vertices.  This is a compact certificate that deleting only four vertices can
 never make the witness bipartite.
 -/
 
@@ -153,7 +153,7 @@ lemma bipartite_card_le_ten (s : Finset (Fin 15))
       exact fiveCycle_not_bipartite s hcsub hs
     · let e : Fin 3 ≃ ↥c := (Finset.equivFinOfCardEq hcard).symm
       let f : Fin 3 → ↥s := fun i => ⟨(e i).1, hcsub (e i).2⟩
-      have hf : Pairwise fun i j : Fin 3 => (witness.induce s).Adj (f i) (f j) := by
+      have hf : Function.Pairwise fun i j : Fin 3 => (witness.induce s).Adj (f i) (f j) := by
         intro i j hij
         change witness.Adj (e i).1 (e j).1
         apply hadj (e i).1 (e i).2 (e j).1 (e j).2
