@@ -1,0 +1,32 @@
+name: Lean Verification
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  lean-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Lean
+        uses: leanprover-community/setup-lean@v1
+
+      - name: Cache Lake dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.elan
+            .lake
+          key: lean-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+
+      - name: Build dependencies
+        run: lake exe cache get
+
+      - name: Verify counterexample
+        run: |
+          lake env lean Counterexample109.lean
