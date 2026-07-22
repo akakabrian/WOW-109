@@ -1,0 +1,12 @@
+name = "wow109"
+version = "0.1.0"
+keywords = ["math", "lean", "counterexample"]
+defaultTargets = ["Counterexample109"]
+
+[[require]]
+name = "formal_conjectures"
+git = "https://github.com/google-deepmind/formal-conjectures"
+rev = "e923379e609b9d5987011a1d1f06ec22ea25cd20"
+
+[[lean_lib]]
+name = "Counterexample109"

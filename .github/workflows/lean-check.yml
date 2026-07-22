@@ -2,31 +2,68 @@ name: Lean Verification
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lean-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   lean-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Lean
-        uses: leanprover-community/setup-lean@v1
-
-      - name: Cache Lake dependencies
-        uses: actions/cache@v4
+      - name: Set up pinned Lean environment
+        uses: leanprover/lean-action@v1
         with:
-          path: |
-            ~/.elan
-            .lake
-          key: lean-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: true
 
-      - name: Build dependencies
-        run: lake exe cache get
-
-      - name: Verify counterexample
+      - name: Reject placeholders and custom axioms
+        shell: bash
         run: |
-          lake env lean Counterexample109.lean
+          set -euo pipefail
+          if grep -nE '(^|[^[:alnum:]_])(sorry|admit)([^[:alnum:]_]|$)|^[[:space:]]*axiom[[:space:]]' \
+              Counterexample109.lean AxiomAudit109.lean; then
+            echo 'Found a proof placeholder or project-defined axiom.' >&2
+            exit 1
+          fi
+
+      - name: Kernel-check counterexample
+        shell: bash
+        run: |
+          set -o pipefail
+          lake build Counterexample109 2>&1 | tee lean-build.log
+
+      - name: Print and check theorem axioms
+        shell: bash
+        run: |
+          set -o pipefail
+          lake env lean AxiomAudit109.lean 2>&1 | tee axiom-audit.log
+          if grep -q 'sorryAx' axiom-audit.log; then
+            echo 'The theorem depends on sorryAx.' >&2
+            exit 1
+          fi
+
+      - name: Upload verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-verification-logs
+          path: |
+            lean-build.log
+            axiom-audit.log
+          if-no-files-found: warn
