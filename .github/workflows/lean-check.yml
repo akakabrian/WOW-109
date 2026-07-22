@@ -32,16 +32,38 @@ jobs:
           use-mathlib-cache: true
           use-github-cache: true
 
+      - name: Reject placeholders and custom axioms
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -nE '(^|[^[:alnum:]_])(sorry|admit)([^[:alnum:]_]|$)|^[[:space:]]*axiom[[:space:]]' \
+              Counterexample109.lean AxiomAudit109.lean; then
+            echo 'Found a proof placeholder or project-defined axiom.' >&2
+            exit 1
+          fi
+
       - name: Kernel-check counterexample
         shell: bash
         run: |
           set -o pipefail
           lake build Counterexample109 2>&1 | tee lean-build.log
 
-      - name: Upload Lean build log
+      - name: Print and check theorem axioms
+        shell: bash
+        run: |
+          set -o pipefail
+          lake env lean AxiomAudit109.lean 2>&1 | tee axiom-audit.log
+          if grep -q 'sorryAx' axiom-audit.log; then
+            echo 'The theorem depends on sorryAx.' >&2
+            exit 1
+          fi
+
+      - name: Upload verification logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lean-build-log
-          path: lean-build.log
-          if-no-files-found: error
+          name: lean-verification-logs
+          path: |
+            lean-build.log
+            axiom-audit.log
+          if-no-files-found: warn
